@@ -115,9 +115,9 @@ def Single(password_hash: str = "", timeout: int = 10) -> Cr:
         # Run John the Ripper to Crack Hash
         if timeout >= 0:
             timeout_str = str(timeout)
-            commands = ['./john/run/john', '--incremental', "--max-run-time=" + timeout_str, john_hash_file]
+            commands = ['./john/run/john', '--single', "--max-run-time=" + timeout_str, john_hash_file]
         else:
-            commands = ['./john/run/john', '--incremental', john_hash_file]
+            commands = ['./john/run/john', '--single', john_hash_file]
         
         subprocess.run(commands)
 
@@ -236,10 +236,12 @@ def Wordlist(password_hash: str = "", wordlist: str = "", rules: bool = True, ti
     desc="Raw: john <raw options> <file hash>",
     params=[annot.Param("password_hash", "Password Hash"),
             annot.Param("options", "Command Flags"),
+            annot.Param("wordlist", "Wordlist"),
+            annot.Param("rules", "Word Permutation Rules"),
             annot.Param("timeout", "Timeout")],
     cats=[Attck.PrivilegeEscalation],
 )
-def Raw(password_hash: str = "", options: str = "", timeout: int = 10) -> Cr:
+def Raw(password_hash: str = "", wordlist: str = "", rules: str = "", options: str = "", timeout: int = 10) -> Cr:
     """
     Run John the Ripper on a password hash with input options.
     ```
@@ -264,9 +266,20 @@ def Raw(password_hash: str = "", options: str = "", timeout: int = 10) -> Cr:
         # Run John the Ripper to Crack Hash
         if timeout >= 0:
             timeout_str = str(timeout)
-            commands = ['./john/run/john', '--incremental', "--max-run-time=" + timeout_str, john_hash_file]
+            commands1 = ['./john/run/john']
+            commands2 = ["--max-run-time=" + timeout_str, john_hash_file]
         else:
-            commands = ['./john/run/john', '--incremental', john_hash_file]
+            commands1 = ['./john/run/john'] 
+            commands2 = [john_hash_file]
+
+        option_commands = options.split(" ")
+        for o in option_commands:
+            # TODO: if wordlist, write wordlist to file and use it
+
+            # TODO: if rule, write rules to file and use them
+            pass
+        
+        commands = commands1 + option_commands + commands2
         
         subprocess.run(commands)
 
