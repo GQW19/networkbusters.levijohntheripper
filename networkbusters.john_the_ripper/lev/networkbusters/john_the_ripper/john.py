@@ -15,11 +15,11 @@ from levrt.annot.cats import Attck, BlackArch
 @annot.meta(
     desc="Base: john <file hash>",
     params=[annot.Param("password_hash", "Password Hash"),
-            annot.Param("wordlist", "Wordlist in valid json"),
+            annot.Param("wordlist", "Wordlist in valid json (set to 'default' to use default built in wordlist)"),
             annot.Param("timeout", "Timeout")],
     cats=[Attck.PrivilegeEscalation, Attck.CredentialAccess, Attck.LateralMovement],
 )
-def Base(password_hash: str = "", timeout: int = 10) -> Cr:
+def Base(password_hash: str = "", wordlist: str = "[]", timeout: int = 10) -> Cr:
     """
     Run John the Ripper on a password hash in single, then wordlist, then incremental mode with a timeout.
     ```
@@ -40,6 +40,13 @@ def Base(password_hash: str = "", timeout: int = 10) -> Cr:
         john_hash_file = "/john_hash_to_crack.txt"
         with open(john_hash_file, 'w') as f:
             f.write(password_hash)    
+
+        # Create Wordlist
+        if wordlist != "default":
+            used_wordlist = json.loads(wordlist)
+            wordlist_file = "/john/run/password.lst"
+            with open(wordlist_file, 'w') as f:
+                f.write('\n'.join(used_wordlist))
         
         # Run John the Ripper to Crack Hash
         if timeout >= 0:
@@ -47,6 +54,8 @@ def Base(password_hash: str = "", timeout: int = 10) -> Cr:
             commands = ['./john/run/john', "--max-run-time=" + timeout_str, john_hash_file]
         else:
             commands = ['./john/run/john', john_hash_file]
+        
+        logger.debug("Reached processing")
         
         subprocess.run(commands)
 
@@ -68,6 +77,7 @@ def Base(password_hash: str = "", timeout: int = 10) -> Cr:
         
         password_to_hashes = {}
         
+        logger.debug("Successfully Cracked passwords")
         #for c in cracked_passwords:
         if len(cracked_passwords) > 0:
             c = cracked_passwords[0]
@@ -75,6 +85,7 @@ def Base(password_hash: str = "", timeout: int = 10) -> Cr:
             hash = passwords[0]
             password = passwords[1]
             password_to_hashes[hash] = password
+            logger.debug(password)
             ctx.set(msg="Password Successfully Cracked")
             ctx.set(password=f"{password}")
         else:
@@ -265,11 +276,14 @@ def Wordlist(password_hash: str = "", wordlist: str = "[]", rules: bool = True, 
         
         # Create Wordlist:
         #wordlist = ['123'] # ['hellot0_you', 'hello2', 'hello3']
-        wordlist = json.load(wordlist)
-        logger.debug(wordlist)
-        wordlist_file = "/wordlist_file"
-        with open(wordlist_file, 'w') as f:
-            f.write('\n'.join(wordlist))
+        if wordlist != "default":
+            used_wordlist = json.loads(wordlist)
+            logger.debug(used_wordlist)
+            wordlist_file = "/wordlist_file"
+            with open(wordlist_file, 'w') as f:
+                f.write('\n'.join(used_wordlist))
+        else:
+            wordlist_file = "/john/run/password.lst"
             
         
         # Run John the Ripper to Crack Hash
@@ -340,7 +354,7 @@ def Raw(password_hash: str = "", wordlist: str = "", rules: str = "", options: s
     """
     @levrt.remote
     def entry():
-         # imports and Logging Setup
+        # Imports and Logging Setup
         import sys, subprocess, logging, os, json
 
         logging.basicConfig()
@@ -348,12 +362,11 @@ def Raw(password_hash: str = "", wordlist: str = "", rules: str = "", options: s
         logger.setLevel(logging.DEBUG)
 
         # Write Hash to File
-        #logger.debug(hash)
         john_hash_file = "/john_hash_to_crack.txt"
         with open(john_hash_file, 'w') as f:
             f.write(password_hash)    
         
-        # Run John the Ripper to Crack Hash
+        # Create Commands for John
         if timeout >= 0:
             timeout_str = str(timeout)
             commands1 = ['./john/run/john']
@@ -371,6 +384,7 @@ def Raw(password_hash: str = "", wordlist: str = "", rules: str = "", options: s
         
         commands = commands1 + option_commands + commands2
         
+        # Run John
         subprocess.run(commands)
 
         # Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
