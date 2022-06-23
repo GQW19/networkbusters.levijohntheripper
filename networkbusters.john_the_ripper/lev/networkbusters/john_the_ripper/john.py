@@ -28,56 +28,58 @@ def Base(password_hash: str = "", wordlist: str = "[]", timeout: int = 10) -> Cr
     """
     @levrt.remote
     def entry():
-         # imports and Logging Setup
+        ## Imports and Logging Setup
         import sys, subprocess, logging, os, json
-
         logging.basicConfig()
         logger = logging.getLogger("lev")
         logger.setLevel(logging.DEBUG)
 
-        # Write Hash to File
-        #logger.debug(hash)
+
+        ## Write Hash to File
         john_hash_file = "/john_hash_to_crack.txt"
         with open(john_hash_file, 'w') as f:
             f.write(password_hash)    
 
-        # Create Wordlist
+
+        ## Create Wordlist
         if wordlist != "default":
             used_wordlist = json.loads(wordlist)
             wordlist_file = "/john/run/password.lst"
             with open(wordlist_file, 'w') as f:
                 f.write('\n'.join(used_wordlist))
         
-        # Run John the Ripper to Crack Hash
+
+        ## Create Commands for John
         if timeout >= 0:
             timeout_str = str(timeout)
             commands = ['./john/run/john', "--max-run-time=" + timeout_str, john_hash_file]
         else:
-            commands = ['./john/run/john', john_hash_file]
+            commands = ['./john/run/john', john_hash_file]  
         
-        logger.debug("Reached processing")
-        
+
+        ## Run John the Ripper
         subprocess.run(commands)
 
-        # Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
-        ciphertext_key_file = "cifertext_key"
-        show_commands = ['/john/run/john', '--show=formats', john_hash_file]
-        with open(ciphertext_key_file, 'w') as g:
-            subprocess.run(show_commands, stdout=g)
-        
-        with open(ciphertext_key_file, 'r') as g:
-            ciphertext_data = json.loads(g.read())
-            
-        ciphertext = ciphertext_data[0]["ciphertext"]
 
-        # Load Cracked Password from File
+        ## Optionally: Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
+        # ciphertext_key_file = "cifertext_key"
+        # show_commands = ['/john/run/john', '--show=formats', john_hash_file]
+        # with open(ciphertext_key_file, 'w') as g:
+        #     subprocess.run(show_commands, stdout=g)
+        # with open(ciphertext_key_file, 'r') as g:
+        #     ciphertext_data = json.loads(g.read())
+        # ciphertext = ciphertext_data[0]["ciphertext"]
+
+
+        ## Load Cracked Password from File
         with open("/john/run/john.pot", 'r') as g:
             cracked_passwords = g.readlines()
             cracked_passwords = [line.rstrip() for line in cracked_passwords]
         
         password_to_hashes = {}
         
-        logger.debug("Successfully Cracked passwords")
+
+        ## Set Cracked Password in response
         #for c in cracked_passwords:
         if len(cracked_passwords) > 0:
             c = cracked_passwords[0]
@@ -114,46 +116,49 @@ def Incremental(password_hash: str = "", timeout: int = 10) -> Cr:
     """
     @levrt.remote
     def entry():
-         # imports and Logging Setup
+        ## Imports and Logging Setup
         import sys, subprocess, logging, os, json
-
         logging.basicConfig()
         logger = logging.getLogger("lev")
         logger.setLevel(logging.DEBUG)
 
-        # Write Hash to File
-        #logger.debug(hash)
+
+        ## Write Hash to File
         john_hash_file = "/john_hash_to_crack.txt"
         with open(john_hash_file, 'w') as f:
             f.write(password_hash)    
         
-        # Run John the Ripper to Crack Hash
+
+        ## Create Commands for John
         if timeout >= 0:
             timeout_str = str(timeout)
             commands = ['./john/run/john', '--incremental', "--max-run-time=" + timeout_str, john_hash_file]
         else:
             commands = ['./john/run/john', '--incremental', john_hash_file]
         
+
+        ## Run John the Ripper
         subprocess.run(commands)
 
-        # Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
-        ciphertext_key_file = "cifertext_key"
-        show_commands = ['/john/run/john', '--show=formats', john_hash_file]
-        with open(ciphertext_key_file, 'w') as g:
-            subprocess.run(show_commands, stdout=g)
-        
-        with open(ciphertext_key_file, 'r') as g:
-            ciphertext_data = json.loads(g.read())
-            
-        ciphertext = ciphertext_data[0]["ciphertext"]
 
-        # Load Cracked Password from File
+        ## Optionally: Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
+        # ciphertext_key_file = "cifertext_key"
+        # show_commands = ['/john/run/john', '--show=formats', john_hash_file]
+        # with open(ciphertext_key_file, 'w') as g:
+        #     subprocess.run(show_commands, stdout=g)
+        # with open(ciphertext_key_file, 'r') as g:
+        #     ciphertext_data = json.loads(g.read())
+        # ciphertext = ciphertext_data[0]["ciphertext"]
+
+
+        ## Load Cracked Password from File
         with open("/john/run/john.pot", 'r') as g:
             cracked_passwords = g.readlines()
             cracked_passwords = [line.rstrip() for line in cracked_passwords]
         
         password_to_hashes = {}
         
+        ## Set Cracked Password in response
         #for c in cracked_passwords:
         if len(cracked_passwords) > 0:
             c = cracked_passwords[0]
@@ -186,46 +191,50 @@ def Single(password_hash: str = "", timeout: int = 10) -> Cr:
     """
     @levrt.remote
     def entry():
-         # imports and Logging Setup
+        ## Imports and Logging Setup
         import sys, subprocess, logging, os, json
-
         logging.basicConfig()
         logger = logging.getLogger("lev")
         logger.setLevel(logging.DEBUG)
 
-        # Write Hash to File
-        #logger.debug(hash)
+
+        ## Write Hash to File
         john_hash_file = "/john_hash_to_crack.txt"
         with open(john_hash_file, 'w') as f:
             f.write(password_hash)    
         
-        # Run John the Ripper to Crack Hash
+
+        ## Create Commands for John
         if timeout >= 0:
             timeout_str = str(timeout)
             commands = ['./john/run/john', '--single', "--max-run-time=" + timeout_str, john_hash_file]
         else:
             commands = ['./john/run/john', '--single', john_hash_file]
         
+
+        ## Run John the Ripper
         subprocess.run(commands)
 
-        # Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
-        ciphertext_key_file = "cifertext_key"
-        show_commands = ['/john/run/john', '--show=formats', john_hash_file]
-        with open(ciphertext_key_file, 'w') as g:
-            subprocess.run(show_commands, stdout=g)
-        
-        with open(ciphertext_key_file, 'r') as g:
-            ciphertext_data = json.loads(g.read())
-            
-        ciphertext = ciphertext_data[0]["ciphertext"]
 
-        # Load Cracked Password from File
+        ## Optionally: Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
+        # ciphertext_key_file = "cifertext_key"
+        # show_commands = ['/john/run/john', '--show=formats', john_hash_file]
+        # with open(ciphertext_key_file, 'w') as g:
+        #     subprocess.run(show_commands, stdout=g)
+        # with open(ciphertext_key_file, 'r') as g:
+        #     ciphertext_data = json.loads(g.read())
+        # ciphertext = ciphertext_data[0]["ciphertext"]
+
+
+        ## Load Cracked Password from File
         with open("/john/run/john.pot", 'r') as g:
             cracked_passwords = g.readlines()
             cracked_passwords = [line.rstrip() for line in cracked_passwords]
         
         password_to_hashes = {}
         
+
+        ## Set Cracked Password in response
         #for c in cracked_passwords:
         if len(cracked_passwords) > 0:
             c = cracked_passwords[0]
@@ -261,19 +270,19 @@ def Wordlist(password_hash: str = "", wordlist: str = "[]", rules: bool = True, 
     """
     @levrt.remote
     def entry():
-         # imports and Logging Setup
+        ## Imports and Logging Setup
         import sys, subprocess, logging, os, json
-
         logging.basicConfig()
         logger = logging.getLogger("lev")
         logger.setLevel(logging.DEBUG)
 
-        # Write Hash to File
-        #logger.debug(hash)
+
+        ## Write Hash to File
         john_hash_file = "/john_hash_to_crack.txt"
         with open(john_hash_file, 'w') as f:
             f.write(password_hash)    
         
+
         # Create Wordlist:
         #wordlist = ['123'] # ['hellot0_you', 'hello2', 'hello3']
         if wordlist != "default":
@@ -286,7 +295,7 @@ def Wordlist(password_hash: str = "", wordlist: str = "[]", rules: bool = True, 
             wordlist_file = "/john/run/password.lst"
             
         
-        # Run John the Ripper to Crack Hash
+        ## Create Commands for John
         commands = ['./john/run/john', '--wordlist='+wordlist_file]
         if rules == True:
             commands += ['--rules']
@@ -298,26 +307,29 @@ def Wordlist(password_hash: str = "", wordlist: str = "[]", rules: bool = True, 
             commands += [john_hash_file]
         
 
+        ## Run John the Ripper
         subprocess.run(commands)
 
-        # Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
-        ciphertext_key_file = "cifertext_key"
-        show_commands = ['/john/run/john', '--show=formats', john_hash_file]
-        with open(ciphertext_key_file, 'w') as g:
-            subprocess.run(show_commands, stdout=g)
-        
-        with open(ciphertext_key_file, 'r') as g:
-            ciphertext_data = json.loads(g.read())
-            
-        ciphertext = ciphertext_data[0]["ciphertext"]
 
-        # Load Cracked Password from File
+        ## Optionally: Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
+        # ciphertext_key_file = "cifertext_key"
+        # show_commands = ['/john/run/john', '--show=formats', john_hash_file]
+        # with open(ciphertext_key_file, 'w') as g:
+        #     subprocess.run(show_commands, stdout=g)
+        # with open(ciphertext_key_file, 'r') as g:
+        #     ciphertext_data = json.loads(g.read())
+        # ciphertext = ciphertext_data[0]["ciphertext"]
+
+
+        ## Load Cracked Password from File
         with open("/john/run/john.pot", 'r') as g:
             cracked_passwords = g.readlines()
             cracked_passwords = [line.rstrip() for line in cracked_passwords]
         
         password_to_hashes = {}
         
+
+        ## Set Cracked Password in response
         #for c in cracked_passwords:
         if len(cracked_passwords) > 0:
             c = cracked_passwords[0]
@@ -341,11 +353,10 @@ def Wordlist(password_hash: str = "", wordlist: str = "[]", rules: bool = True, 
     params=[annot.Param("password_hash", "Password Hash"),
             annot.Param("options", "Command Flags"),
             annot.Param("wordlist", "Wordlist"),
-            annot.Param("rules", "Word Permutation Rules"),
             annot.Param("timeout", "Timeout")],
     cats=[Attck.PrivilegeEscalation, Attck.CredentialAccess, Attck.LateralMovement],
 )
-def Raw(password_hash: str = "", wordlist: str = "", rules: str = "", options: str = "", timeout: int = 10) -> Cr:
+def Raw(password_hash: str = "", wordlist: str = "default", options: str = " ", timeout: int = 10) -> Cr:
     """
     Run John the Ripper on a password hash with input options.
     ```
@@ -354,19 +365,29 @@ def Raw(password_hash: str = "", wordlist: str = "", rules: str = "", options: s
     """
     @levrt.remote
     def entry():
-        # Imports and Logging Setup
+        ## Imports and Logging Setup
         import sys, subprocess, logging, os, json
-
         logging.basicConfig()
         logger = logging.getLogger("lev")
         logger.setLevel(logging.DEBUG)
 
-        # Write Hash to File
+
+        ## Write Hash to File
         john_hash_file = "/john_hash_to_crack.txt"
         with open(john_hash_file, 'w') as f:
             f.write(password_hash)    
         
-        # Create Commands for John
+
+        ## Create Wordlist:
+        if wordlist != "default":
+            used_wordlist = json.loads(wordlist)
+            logger.debug(used_wordlist)
+            wordlist_file = "/john/run/password.lst"
+            with open(wordlist_file, 'w') as f:
+                f.write('\n'.join(used_wordlist))
+
+
+        ## Create Commands for John
         if timeout >= 0:
             timeout_str = str(timeout)
             commands1 = ['./john/run/john']
@@ -375,36 +396,35 @@ def Raw(password_hash: str = "", wordlist: str = "", rules: str = "", options: s
             commands1 = ['./john/run/john'] 
             commands2 = [john_hash_file]
 
-        option_commands = options.split(" ")
-        for o in option_commands:
-            # TODO: if wordlist, write wordlist to file and use it
 
-            # TODO: if rule, write rules to file and use them
-            pass
-        
+        ## Load Input Commands
+        option_commands = options.split(" ")       
         commands = commands1 + option_commands + commands2
         
-        # Run John
+
+        ## Run John the Ripper
         subprocess.run(commands)
 
-        # Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
-        ciphertext_key_file = "cifertext_key"
-        show_commands = ['/john/run/john', '--show=formats', john_hash_file]
-        with open(ciphertext_key_file, 'w') as g:
-            subprocess.run(show_commands, stdout=g)
-        
-        with open(ciphertext_key_file, 'r') as g:
-            ciphertext_data = json.loads(g.read())
-            
-        ciphertext = ciphertext_data[0]["ciphertext"]
 
-        # Load Cracked Password from File
+        ## Optionally: Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
+        # ciphertext_key_file = "cifertext_key"
+        # show_commands = ['/john/run/john', '--show=formats', john_hash_file]
+        # with open(ciphertext_key_file, 'w') as g:
+        #     subprocess.run(show_commands, stdout=g)
+        # with open(ciphertext_key_file, 'r') as g:
+        #     ciphertext_data = json.loads(g.read())
+        # ciphertext = ciphertext_data[0]["ciphertext"]
+
+
+        ## Load Cracked Password from File
         with open("/john/run/john.pot", 'r') as g:
             cracked_passwords = g.readlines()
             cracked_passwords = [line.rstrip() for line in cracked_passwords]
-        
+
         password_to_hashes = {}
         
+
+        ## Set Cracked Password in response
         #for c in cracked_passwords:
         if len(cracked_passwords) > 0:
             c = cracked_passwords[0]
@@ -464,14 +484,14 @@ def extract_hash(file_to_extract: File = None,
     """
     @levrt.remote
     def entry():
-         # imports and Logging Setup
+        ## Imports and Logging Setup
         import sys, subprocess, logging, os, json
-
         logging.basicConfig()
         logger = logging.getLogger("lev")
         logger.setLevel(logging.DEBUG)
 
-        # Choose Extraction Type:
+
+        ## Choose Extraction Type:
         extractor = None
         if dmg2john == True:
             extractor = ["./john/run/dmg2john"]
@@ -501,6 +521,7 @@ def extract_hash(file_to_extract: File = None,
             extractor[0] = './john/run/' + extractor[0]
 
 
+        ## Create Command and Run Extraction
         loaded_filepath = "/file_to_extract"  
         hash_file = "output"
         with open(hash_file, 'w') as hash_file_opened:
@@ -515,7 +536,7 @@ def extract_hash(file_to_extract: File = None,
                 subprocess.run(commands, stdout=hash_file_opened)
             
 
-        # Check if it worked
+        ## Check If Extraction Worked and Set Response
         size = os.path.getsize(hash_file)
         if size > 0:
             with open(hash_file, 'r') as g:
