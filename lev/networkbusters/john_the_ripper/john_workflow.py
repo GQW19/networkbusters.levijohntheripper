@@ -50,7 +50,7 @@ async def JTR_Base_Workflow(file_to_extract: File,
     """
     Lev Password Cracker Series:
 
-    Our Password Cracking workflows take input from CeWL and CUPP generated wordlists and use them in John the Ripper to crack the password hashes of encrypted files. 
+    Our Password Cracking workflows generate potential password wordlists and use them in John the Ripper to crack the password hashes of encrypted files. We use CeWL and CUPP to generate wordlists based on crawled webpages and user profiling.
 
     John the Ripper Base Workflow: Run John the Ripper on an encrypted file's hash with only the default John wordlist of common passwords.  
     ```
@@ -147,7 +147,7 @@ async def JTR_CeWL_Wordlist_Workflow(file_to_extract: File,
     """
     Lev Password Cracker Series:
 
-    Our Password Cracking workflows take input from CeWL and CUPP generated wordlists and use them in John the Ripper to crack the password hashes of encrypted files. 
+    Our Password Cracking workflows generate potential password wordlists and use them in John the Ripper to crack the password hashes of encrypted files. We use CeWL and CUPP to generate wordlists based on crawled webpages and user profiling.
 
     CeWL Wordlist Workflow: Run CeWL on URL, pass resulting wordlist to CuPP, then pass wordlist to John the ripper to crack an encrypted file. 
     ```
@@ -279,7 +279,7 @@ async def JTR_CUPP_Wordlist_Workflow(file_to_extract: File,
     """
     Lev Password Cracker Series:
 
-    Our Password Cracking workflows take input from CeWL and CUPP generated wordlists and use them in John the Ripper to crack the password hashes of encrypted files. 
+    Our Password Cracking workflows generate potential password wordlists and use them in John the Ripper to crack the password hashes of encrypted files. We use CeWL and CUPP to generate wordlists based on crawled webpages and user profiling.
 
     CUPP Wordlist Workflow: Create wordlist with input profiled user information, then pass the wordlist to John The Ripper to crack an encrypted file. 
     ```
@@ -435,7 +435,7 @@ async def JTR_CeWL_CUPP_Wordlist_Workflow(file_to_extract: File,
     """
     Lev Password Cracker Series:
 
-    Our Password Cracking workflows take input from CeWL and CUPP generated wordlists and use them in John the Ripper to crack the password hashes of encrypted files. 
+    Our Password Cracking workflows generate potential password wordlists and use them in John the Ripper to crack the password hashes of encrypted files. We use CeWL and CUPP to generate wordlists based on crawled webpages and user profiling.
 
     CeWL/CUPP Wordlist Workflow: Run CeWL on URL, pass resulting wordlist to CUPP, add to wordlist with input profiled user information, then pass wordlist to John The Ripper to crack an encrypted file. 
     ```
