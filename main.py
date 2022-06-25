@@ -1,5 +1,5 @@
 import logging
-
+import pathlib
 import levrt
 from lev.networkbusters.john_the_ripper import john
 
@@ -9,20 +9,16 @@ async def main():
     Tests for John the Ripper and Pasword Hash Extraction
     """
 
+    filepath = pathlib.Path("/kali/home/john_test/password1.zip")
     
-
-    print("Done")
-    pass
-
-    """
     print("----------------------")
     print("Testing Hash Extraction")
-    doc = await john.Base('my_file:$pkzip$1*2*2*0*13*7*b042d89e*42*49*0*13*7e8a*dae9818f16b061f65e12f69c83acd3180333b3*$/pkzip$:my_file', '["1234", "12345"]', timeout=10)
+    doc = await john.extract_hash(filepath, zip2john=True)
     data = await doc.get()
-    print(data["msg"])
-    print(data["password"])
+    print("Hash: ", data["hash"])
+    #print(data["password"])
 
-    """
+    
 
     """
     print("----------------------")

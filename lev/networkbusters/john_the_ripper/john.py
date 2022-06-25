@@ -2,9 +2,9 @@
 John the Ripper
 Run John the Ripper on a password hash.
 Homepage: -
-GitHub: -
+GitHub: https://github.com/GQW19/networkbusters.levijohntheripper
 Type: IMAGE-BASED
-Version: v1.0.0
+Version: v0.1.29
 """
 
 import levrt
@@ -15,8 +15,8 @@ from levrt.annot.cats import Attck, BlackArch
 @annot.meta(
     desc="Base: john <file hash>",
     params=[annot.Param("password_hash", "Password Hash"),
-            annot.Param("wordlist", "Wordlist in valid json (set to 'default' to use default built in wordlist)"),
-            annot.Param("timeout", "Timeout")],
+            annot.Param("wordlist", "Wordlist in valid json (set to 'default' to use default built in wordlist) using double quotes around words"),
+            annot.Param("timeout", "Timeout (-1 for no timeout)")],
     cats=[Attck.PrivilegeEscalation, Attck.CredentialAccess, Attck.LateralMovement],
 )
 def Base(password_hash: str = "", wordlist: str = "[]", timeout: int = 10) -> Cr:
@@ -28,74 +28,88 @@ def Base(password_hash: str = "", wordlist: str = "[]", timeout: int = 10) -> Cr
     """
     @levrt.remote
     def entry():
-        ## Imports and Logging Setup
-        import sys, subprocess, logging, os, json
-        logging.basicConfig()
-        logger = logging.getLogger("lev")
-        logger.setLevel(logging.DEBUG)
+        try:
+            ## Imports and Logging Setup
+            import sys, subprocess, logging, os, json
+            logging.basicConfig()
+            logger = logging.getLogger("lev")
+            logger.setLevel(logging.DEBUG)
 
 
-        ## Write Hash to File
-        john_hash_file = "/john_hash_to_crack.txt"
-        with open(john_hash_file, 'w') as f:
-            f.write(password_hash)    
+            ## Write Hash to File
+            john_hash_file = "/john_hash_to_crack.txt"
+            with open(john_hash_file, 'w') as f:
+                f.write(password_hash)    
 
 
-        ## Create Wordlist
-        if wordlist != "default":
-            used_wordlist = json.loads(wordlist)
-            wordlist_file = "/john/run/password.lst"
-            with open(wordlist_file, 'w') as f:
-                f.write('\n'.join(used_wordlist))
-        
+            ## Create Wordlist
+            if wordlist != "default":
+                logger.debug(wordlist)
+                used_wordlist = json.loads(wordlist)
+                logger.debug(used_wordlist)
+                wordlist_file = "/john/run/password.lst"
 
-        ## Create Commands for John
-        if timeout >= 0:
-            timeout_str = str(timeout)
-            commands = ['./john/run/john', "--max-run-time=" + timeout_str, john_hash_file]
-        else:
-            commands = ['./john/run/john', john_hash_file]  
-        
+                # Save default wordlist
+                with open(wordlist_file, 'r') as g:
+                    lines = g.readlines()
+                    lines = [line.rstrip() for line in lines]
+                
+                used_wordlist += lines
 
-        ## Run John the Ripper
-        subprocess.run(commands)
+                with open(wordlist_file, 'w') as f:
+                    f.write('\n'.join(used_wordlist))
+            
+
+            ## Create Commands for John
+            if timeout >= 0:
+                timeout_str = str(timeout)
+                commands = ['./john/run/john', "--max-run-time=" + timeout_str, john_hash_file]
+            else:
+                commands = ['./john/run/john', john_hash_file]  
+            
+
+            ## Run John the Ripper
+            subprocess.run(commands)
 
 
-        ## Optionally: Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
-        # ciphertext_key_file = "cifertext_key"
-        # show_commands = ['/john/run/john', '--show=formats', john_hash_file]
-        # with open(ciphertext_key_file, 'w') as g:
-        #     subprocess.run(show_commands, stdout=g)
-        # with open(ciphertext_key_file, 'r') as g:
-        #     ciphertext_data = json.loads(g.read())
-        # ciphertext = ciphertext_data[0]["ciphertext"]
+            ## Optionally: Show Password Hashes to compare to passwords later: (not currently used, but may be necessary in the future)
+            # ciphertext_key_file = "cifertext_key"
+            # show_commands = ['/john/run/john', '--show=formats', john_hash_file]
+            # with open(ciphertext_key_file, 'w') as g:
+            #     subprocess.run(show_commands, stdout=g)
+            # with open(ciphertext_key_file, 'r') as g:
+            #     ciphertext_data = json.loads(g.read())
+            # ciphertext = ciphertext_data[0]["ciphertext"]
 
 
-        ## Load Cracked Password from File
-        with open("/john/run/john.pot", 'r') as g:
-            cracked_passwords = g.readlines()
-            cracked_passwords = [line.rstrip() for line in cracked_passwords]
-        
-        password_to_hashes = {}
-        
+            ## Load Cracked Password from File
+            with open("/john/run/john.pot", 'r') as g:
+                cracked_passwords = g.readlines()
+                cracked_passwords = [line.rstrip() for line in cracked_passwords]
+            
+            password_to_hashes = {}
+            
 
-        ## Set Cracked Password in response
-        #for c in cracked_passwords:
-        if len(cracked_passwords) > 0:
-            c = cracked_passwords[0]
-            passwords = c.split(':', 1)
-            hash = passwords[0]
-            password = passwords[1]
-            password_to_hashes[hash] = password
-            logger.debug(password)
-            ctx.set(msg="Password Successfully Cracked")
-            ctx.set(password=f"{password}")
-        else:
-            ctx.set(msg="Password Not Cracked Successfully")
+            ## Set Cracked Password in response
+            #for c in cracked_passwords:
+            if len(cracked_passwords) > 0:
+                c = cracked_passwords[0]
+                passwords = c.split(':', 1)
+                hash = passwords[0]
+                password = passwords[1]
+                password_to_hashes[hash] = password
+                logger.debug(password)
+                ctx.set(msg="Password Successfully Cracked")
+                ctx.set(password=f"{password}")
+            else:
+                ctx.set(msg="Password Not Cracked Successfully")
+                ctx.set(password='')
+        except Exception:
+            ctx.set(msg="Exception Encountered in Password Cracking Code")
             ctx.set(password='')
 
 
-    return Cr("2746dc3d57b0", entry=entry())
+    return Cr(".networkbusters.john_the_ripper_image:v1.0", entry=entry())
 
 
 
@@ -173,7 +187,7 @@ def Incremental(password_hash: str = "", timeout: int = 10) -> Cr:
             ctx.set(password='')
 
 
-    return Cr("2746dc3d57b0", entry=entry())
+    return Cr(".networkbusters.john_the_ripper_image:v1.0", entry=entry())
 
 
 @annot.meta(
@@ -249,7 +263,7 @@ def Single(password_hash: str = "", timeout: int = 10) -> Cr:
             ctx.set(password='')
 
 
-    return Cr("2746dc3d57b0", entry=entry())
+    return Cr(".networkbusters.john_the_ripper_image:v1.0", entry=entry())
 
 
 
@@ -344,7 +358,7 @@ def Wordlist(password_hash: str = "", wordlist: str = "[]", rules: bool = True, 
             ctx.set(password='')
 
 
-    return Cr("2746dc3d57b0", entry=entry())
+    return Cr(".networkbusters.john_the_ripper_image:v1.0", entry=entry())
 
 
 
@@ -439,7 +453,7 @@ def Raw(password_hash: str = "", wordlist: str = "default", options: str = " ", 
             ctx.set(password='')
 
 
-    return Cr("2746dc3d57b0", entry=entry())
+    return Cr(".networkbusters.john_the_ripper_image:v1.0", entry=entry())
 
 
 
@@ -462,7 +476,7 @@ def Raw(password_hash: str = "", wordlist: str = "default", options: str = " ", 
             annot.Param("hash_extractor", "(If Other) Name Of Hash Extractor Tool")],
     cats=[Attck.PrivilegeEscalation, Attck.CredentialAccess, Attck.LateralMovement],
 )
-def extract_hash(file_to_extract: File = None, 
+def extract_hash(file_to_extract: File, 
                 dmg2john: bool = False,
                 racf2john: bool = False,
                 wpapcap2john: bool = False,
@@ -475,7 +489,7 @@ def extract_hash(file_to_extract: File = None,
                 uaf2john: bool = False,
                 vncpcap2john: bool = False,
                 other: bool = False,
-                hash_extractor: str="") -> Cr:
+                hash_extractor: str="None") -> Cr:
     """
     Extract Hash from Encrypted File
     ```
@@ -519,41 +533,51 @@ def extract_hash(file_to_extract: File = None,
             extractor = [hash_extractor.split(' ')]
             # Set Correct Filepath to tool????
             extractor[0] = './john/run/' + extractor[0]
-
-
-        ## Create Command and Run Extraction
-        loaded_filepath = "/file_to_extract"  
-        hash_file = "output"
-        with open(hash_file, 'w') as hash_file_opened:
-            if extractor is None or len(extractor) == 0:
-                # If no hash extractor porvided.
-                with open(loaded_filepath, 'r') as g:
-                    for line in g:
-                        hash_file_opened.write(line)
+            if os.path.isfile(extractor[0]):
+                pass
+            elif os.path.isfile(extractor[0] + ".py"):
+                extractor[0] = extractor[0] + ".py"
             else:
-                # Else run the hash extractor
-                commands = extractor + [loaded_filepath]      
-                subprocess.run(commands, stdout=hash_file_opened)
-            
-
-        ## Check If Extraction Worked and Set Response
-        size = os.path.getsize(hash_file)
-        if size > 0:
-            with open(hash_file, 'r') as g:
-                hash_data = g.read()
-            ctx.set(success=True)
-            ctx.set(hash=hash_data)
-        else:
+                extractor = None
+        
+        if extractor is None:
+            ctx.set(msg="Nonvalid extractor provided. Please see JTR documentation for valid extractors. ")
             ctx.set(success=False)
             ctx.set(hash='')
+        else:
+            ## Create Command and Run Extraction
+            loaded_filepath = "/file_to_extract"  
+            hash_file = "output"
+            with open(hash_file, 'w') as hash_file_opened:
+                if extractor is None or len(extractor) == 0:
+                    # If no hash extractor porvided.
+                    with open(loaded_filepath, 'r') as g:
+                        for line in g:
+                            hash_file_opened.write(line)
+                else:
+                    # Else run the hash extractor
+                    commands = extractor + [loaded_filepath]      
+                    subprocess.run(commands, stdout=hash_file_opened)
+                
 
-    return Cr("2746dc3d57b0", entry=entry(), files={"/file_to_extract": file_to_extract})
+            ## Check If Extraction Worked and Set Response
+            size = os.path.getsize(hash_file)
+            if size > 0:
+                with open(hash_file, 'r') as g:
+                    hash_data = g.read()
+                ctx.set(success=True)
+                ctx.set(hash=hash_data)
+            else:
+                ctx.set(success=False)
+                ctx.set(hash='')
+
+    return Cr(".networkbusters.john_the_ripper_image:v1.0", entry=entry(), files={"/file_to_extract": file_to_extract})
 
 
 
 
 
-__lev__ = annot.meta([Incremental, Single, Wordlist, Raw, extract_hash],
+__lev__ = annot.meta([Base, Incremental, Single, Wordlist, Raw, extract_hash],
                      desc = "John the Ripper Password Cracker", # name of tool
                      cats = {
                         Attck: [Attck.PrivilegeEscalation, Attck.CredentialAccess, Attck.LateralMovement] # ATT&CK
